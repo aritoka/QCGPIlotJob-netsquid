@@ -196,7 +196,6 @@ def main(inputfile, projectdir):
     """
     
     parameters = optParams()
-
     parameters.projectdir = projectdir
 
     f = open(inputfile, 'r')
@@ -224,6 +223,9 @@ def main(inputfile, projectdir):
     print("done")
     
     # First optimization
+    print("\n\n---------------------------")
+    print("---------------------------")
+    print("Starting first optimization")
     # define and create, if needed, directory containing csvfiles
     csvfiledir = define_dir_for_csvfiles(general, parameters.optdir)
 
@@ -240,21 +242,16 @@ def main(inputfile, projectdir):
     print("\n\n---------------------------")
     print("---------------------------")
     print("Starting second optimization")
-    localoptdir = parameters.optdir + "/localoptimization/"
-    isExist = os.path.exists(localoptdir)
+    parameters.optdir = parameters.optdir + "/localoptimization/"
+    isExist = os.path.exists(parameters.optdir)
     if not isExist:
-        os.mkdir(localoptdir)
+        os.mkdir(parameters.optdir)
     # define and create, if needed, directory containing csvfiles
-    csvfiledir = define_dir_for_csvfiles(general, localoptdir)
-    localoptsteps = int(general['run']['type']['localopt']['steps'])
-    algorithm = general['run']['type']['localopt']['algorithm']
-    restartcsv = parameters.optdir + "opt_step_" + str(parameters.optsteps - 1) \
+    parameters.csvfiledir = define_dir_for_csvfiles(general, parameters.optdir)
+    parameters.optsteps = int(general['run']['type']['localopt']['steps'])
+    parameters.algorithm = general['run']['type']['localopt']['algorithm']
+    parameters.restartcsv = parameters.optdir + "opt_step_" + str(parameters.optsteps - 1) \
                                    + "/csv_output_" + str(parameters.optsteps - 1) + ".csv"
-
-    parameters.algorithm = algorithm
-    parameters.optsteps = localoptsteps
-    parameters.optdir = localoptdir
-    parameters.restartcsv = restartcsv
     parameters.restart = True
     parameters.flag = "local"
 
