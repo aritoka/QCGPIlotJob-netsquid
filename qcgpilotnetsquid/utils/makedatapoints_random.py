@@ -4,7 +4,7 @@ Defines functions to create parameters data points for fully random distribution
 import logging
 import random
 import numpy as np
-from smartstopos.utils.parserconstraints import evaluate_constraints
+from qcgpilotnetsquid.utils.parserconstraints import evaluate_constraints
 
 
 def make_init_datapoints_random(sim_param, set_param):

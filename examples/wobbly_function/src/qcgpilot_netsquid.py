@@ -5,10 +5,10 @@ from argparse import ArgumentParser
 from datetime import datetime
 from qcg.pilotjob.api.manager import LocalManager
 from qcg.pilotjob.api.job import Jobs
-from smartstopos.utils.readinput import read_input_json
-from smartstopos.utils.createpoints import create_datapoints
-from smartstopos.qcgpilot.utilsqcgpilot import copyfiles
-from smartstopos.qcgpilot.utilsqcgpilot import commandline
+from qcgpilotnetsquid.utils.readinput import read_input_json
+from qcgpilotnetsquid.utils.createpoints import create_datapoints
+from qcgpilotnetsquid.qcgpilot.utilsqcgpilot import copyfiles
+from qcgpilotnetsquid.qcgpilot.utilsqcgpilot import commandline
 
 def directorystructureNLBlueprint(projectdir, general):
     """ Creates the directory structure agreed in the NLbluprint
