@@ -7,7 +7,7 @@ from qcg.pilotjob.api.manager import LocalManager
 from qcg.pilotjob.api.job import Jobs
 from qcgpilotnetsquid.utils.readinput import read_input_json
 from qcgpilotnetsquid.utils.createpoints import create_datapoints
-from qcgpilotnetsquid.qcgpilot.utilsqcgpilot import copyfiles
+from qcgpilotnetsquid.utils.copyfiles import copyfiles
 
 def commandline(j, point, step, general):
     """Create command line to run jobs
