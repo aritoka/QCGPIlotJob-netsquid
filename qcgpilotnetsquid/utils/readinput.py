@@ -2,7 +2,7 @@
 import json
 import random
 from argparse import ArgumentParser
-from smartstopos.utils.parameters import Parameter, SetParameters
+from qcgpilotnetsquid.utils.parameters import Parameter, SetParameters
 
 
 def str2bool(v):

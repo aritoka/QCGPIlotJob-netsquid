@@ -3,7 +3,7 @@ import logging
 import random
 import copy
 from pprint import pformat
-from smartstopos.utils.parserconstraints import evaluate_constraints
+from qcgpilotnetsquid.utils.parserconstraints import evaluate_constraints
 # from pprint import pprint
 import numpy as np
 

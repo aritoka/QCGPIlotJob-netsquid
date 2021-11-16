@@ -9,13 +9,13 @@ import numpy as np
 import pandas as pd
 import pprint
 from argparse import ArgumentParser
-from smartstopos.algorithms.ga import genetic_algorithm 
-from smartstopos.algorithms.randomdisplacement import random_displacement
-from smartstopos.utils.readcsv import readcsvfiles
-from smartstopos.utils.readinput import read_input_json
-from smartstopos.utils.makedatapoints import make_data_points
-from smartstopos.utils.makedatapoints_random import make_init_datapoints_random
-from smartstopos.utils.parserconstraints import evaluate_constraints
+from qcgpilotnetsquid.algorithms.ga import genetic_algorithm 
+from qcgpilotnetsquid.algorithms.randomdisplacement import random_displacement
+from qcgpilotnetsquid.utils.readcsv import readcsvfiles
+from qcgpilotnetsquid.utils.readinput import read_input_json
+from qcgpilotnetsquid.utils.makedatapoints import make_data_points
+from qcgpilotnetsquid.utils.makedatapoints_random import make_init_datapoints_random
+from qcgpilotnetsquid.utils.parserconstraints import evaluate_constraints
 
 
 def create_datapoints(sim_param, set_param, algorithm, csvfiledir, csvprefix, optdir, step,
