@@ -79,21 +79,19 @@ def readcsvfiles(csvfiledir, optdir, csvprefix, step, backsteps=1,
     csvdata = []
     csvfiles =[]
     
-    
     if restartcsv is not None and step == 0:
         csvfiles += [restartcsv]
-    
-    # create a list of csvfiles to check
+
     else:
         if csvfiledir == None:
             for i in range(0, backsteps):
-                temp= optdir + "opt_step_" + str(step - i - 1 ) + "/" + csvprefix + str(step - i - 1) + ".csv"
+                temp= optdir + "opt_step_" + str(step - i - 1) + "/" + csvprefix + str(step - i - 1) + ".csv"
                 csvfiles += [temp]
         else:
             for i in range(0, backsteps):
-                temp = csvfiledir + "/" + csvprefix + str(step - i - 1 ) + ".csv"
+                temp = csvfiledir + "/" + csvprefix + str(step - i - 1) + ".csv"
                 csvfiles += [temp]
-
+    
     totaldata = [] 
     for f in csvfiles:
         csvdata = list(pd.read_csv(f, engine='python', dtype=float).values)

@@ -60,24 +60,22 @@ csvfile and optimization algorithm
             newdatapoints = create_init_datapoints(sim_param, set_param)
     
     # create data points based on csvfile(s)
-    # read csvfiles 
+    # read csvfiles
+    backsteps=step
     if step == 0 and restart == True:
         print("Simulation restarted from: {}, reading csvfile".format(restartcsv))
         if restartcsv is not None:
-            totaldata = readcsvfiles(csvfiledir, optdir, csvprefix, step,
-                                     backsteps=0, restartcsv=restartcsv, subsample=None)
+            restartcsv=restartcsv
         else: 
-            raise NameError('you need to give a path to a restart csv file')
-    
-    elif step == 1:
-        totaldata = readcsvfiles(csvfiledir, optdir, csvprefix, step,
-                                 backsteps=1, subsample=None)
-    elif step == 2:
-        totaldata = readcsvfiles(csvfiledir, optdir, csvprefix, step,
-                                 backsteps=2, subsample=None)
+            raise NameError('You need to give a path to a restart csv file')
+    elif step == 1 or step == 2:
+        restartcsv=None
     elif step > 2:
-        totaldata = readcsvfiles(csvfiledir, optdir, csvprefix, step,
-                                 backsteps=3, subsample=None)
+        backsteps=3
+        restartcsv=None
+    
+    totaldata = readcsvfiles(csvfiledir, optdir, csvprefix, step,
+                                 backsteps, restartcsv, subsample=None)
     
     # create data points based on information read from csvfiles
     if step > 0 or restart==True:
