@@ -10,6 +10,47 @@ from qcgpilotnetsquid.utils.createpoints import create_datapoints
 from qcgpilotnetsquid.qcgpilot.utilsqcgpilot import copyfiles
 from qcgpilotnetsquid.qcgpilot.utilsqcgpilot import commandline
 
+from qcgpilotnetsquid.utils.parameters import SetParameters
+from qcg.pilotjob.api.manager import LocalManager
+
+
+class optParams:
+    sim_param = {}
+    set_param = SetParameters()
+    data = {}
+    manager = LocalManager()
+    algorithm = "GA"
+    optsteps = 0
+    optdir = ""
+    csvfiledir = ""
+    projectdir = os.getcwd()
+    restartcsv = None
+    restart = False
+    flag = ""
+
+
+def define_dir_for_csvfiles(general, optdir):
+    """
+    Define and create, if needed, directory containing csvfiles
+    Parameters
+    ----------
+    general: ???
+    optdir: string
+            oprimization directory /output/optimization/
+    Returns
+    -------
+        csvfiledir: str
+            Directory for the csv files
+    """
+    if general['csvfiledir'] is not None:
+        csvfiledir = general['csvfiledir']
+        csvfiledir = optdir + csvfiledir + "/" 
+        if not os.path.exists(csvfiledir):
+            os.mkdir(csvfiledir)
+
+    return csvfiledir
+
+
 def directorystructureNLBlueprint(projectdir, general):
     """ Creates the directory structure agreed in the NLbluprint
     Parameters
@@ -38,9 +79,7 @@ def directorystructureNLBlueprint(projectdir, general):
     return optdir
 
 
-def optimization_workflow(sim_param, set_param, data, manager, algorithm, optsteps, optdir,
-                         csvfiledir, projectdir, restartcsv=None,
-                         restart=False, flag=''):
+def optimization_workflow(parameters):
     """
     Define optimization workflow
 
@@ -60,7 +99,7 @@ def optimization_workflow(sim_param, set_param, data, manager, algorithm, optste
             oprimization directory /output/optimization/
         csvfiledir: string
             Directory where csvfiles with results are place, if None, then they
-are kept in the opt_step_i directory
+            are kept in the opt_step_i directory
         projectdir: string 
             directory project 
         restartcsv: string
@@ -71,41 +110,42 @@ are kept in the opt_step_i directory
             Flag needed for qcgpilot unique job naming convention
     """
     #TODO: remove redundant things: eg sim_param is sort of contained in data
-    general = data['general']
-    system = data['system']
+    general = parameters.data['general']
+    system = parameters.data['system']
     if general["csvfileprefix"]:
         csvprefix = general['csvfileprefix'] + "_"
     else:
         csvprefix = "csv_output_"
     
-    print(algorithm) 
+    print(parameters.algorithm) 
     # Optimization workflow
-    for step in range(0, optsteps):
+    for step in range(0, parameters.optsteps):
         print("-----------------------------")
         print("step : {}".format(step))
         jobs = Jobs()
         names = []
-        workdir = optdir + "opt_step_" + str(step) +"/"
+        workdir = parameters.optdir + "opt_step_" + str(step) +"/"
         print(workdir)
         if not os.path.exists(workdir):
             os.mkdir(workdir)
         # copy files needed from projectdir to workdir
-        copyfiles(workdir, projectdir, general["files_needed"])
+        copyfiles(workdir, parameters.projectdir, general["files_needed"])
 
         csvfile = csvprefix + str(step) + ".csv"
         print("Creating data points to run...")
-        datapoints = create_datapoints(sim_param, set_param, 
-                                       algorithm, csvfiledir, csvprefix, 
-                                       optdir, step, restartcsv, restart=restart)
+        datapoints = create_datapoints(parameters.sim_param, parameters.set_param, 
+                                       parameters.algorithm, parameters.csvfiledir, csvprefix, 
+                                       parameters.optdir, step, parameters.restartcsv, 
+                                       restart=parameters.restart)
         print("done")
 
         for j, point in enumerate(datapoints):
-            names.append(general['name_project'] + "_" + str(step) + "_" + str(j) + flag)
+            names.append(general['name_project'] + "_" + str(step) + "_" + str(j) + parameters.flag)
             instruction = commandline(j, point, step, general)
             
             if step == 0:
                 jobs.add(
-                        name = general['name_project']+"_"+ str(step)+ "_" + str(j) + flag,
+                        name = general['name_project']+"_"+ str(step)+ "_" + str(j) + parameters.flag,
                         exec = 'python3',
                         args = instruction,
                         numCores = system['ncores'],
@@ -114,7 +154,7 @@ are kept in the opt_step_i directory
             
             else: 
                 jobs.add(
-                        name=general['name_project']+"_"+ str(step)+ "_" + str(j) + flag,
+                        name=general['name_project']+"_"+ str(step)+ "_" + str(j) + parameters.flag,
                         exec='python3',
                         args=instruction,
                         numCores=system['ncores'],
@@ -122,7 +162,7 @@ are kept in the opt_step_i directory
                         after=[analysis]
                 )
         jobs.add(
-            name=general['name_project']+'_analysis_'+str(step) + flag,
+            name=general['name_project']+'_analysis_'+str(step) + parameters.flag,
             exec='python3',
             args=[general['analysis_program'],"--step", step],
             numCores=system['ncores'],
@@ -130,18 +170,18 @@ are kept in the opt_step_i directory
             wd=workdir
         )
         print("Submitting jobs...")
-        job_ids = manager.submit(jobs)
+        job_ids = parameters.manager.submit(jobs)
         #print('submited jobs: ', str(job_ids))
         #job_status = manager.status(job_ids)
         #print('job status: ', job_status)
-        manager.wait4(job_ids)
+        parameters.manager.wait4(job_ids)
         print("jobs finished")
-        job_status = manager.status(job_ids)
+        job_status = parameters.manager.status(job_ids)
         print('job status: ', job_status)
-        if csvfiledir is not None:
-            shutil.copyfile(workdir + csvfile, csvfiledir + csvfile)
+        if parameters.csvfiledir is not None:
+            shutil.copyfile(workdir + csvfile, parameters.csvfiledir + csvfile)
 
-        analysis = general['name_project'] + '_analysis_' + str(step) + flag
+        analysis = general['name_project'] + '_analysis_' + str(step) + parameters.flag
         del names
 
 
@@ -154,16 +194,20 @@ def main(inputfile, projectdir):
         projectdir: str
             Directory where the inputfile and other needed files are
     """
+    
+    parameters = optParams()
+
+    parameters.projectdir = projectdir
 
     f = open(inputfile, 'r')
-    infoinput = json.load(f)
+    parameters.data = json.load(f)
     # general['run'] is almost the same as sim_param.
     # TODO: change all to work with general instead of sim_param?
     # The weird set_param construction probably can be subsitute by something
     # simple, just a directory infoinput['parameters']..lots of refactoring
     # needed
-    sim_param, set_param = read_input_json(inputfile)
-    general = infoinput['general']
+    parameters.sim_param, parameters.set_param = read_input_json(inputfile)
+    general = parameters.data['general']
 
     
     print("Creating directory structure...")
@@ -171,52 +215,53 @@ def main(inputfile, projectdir):
     # singledir = projectdir/output/name-project/single/
 
     # optdir = projectdir/output/name-project/optimization/
-    optdir = directorystructureNLBlueprint(projectdir, general)
+    parameters.optdir = directorystructureNLBlueprint(projectdir, general)
     print("done")
     
     # Initialize QCGpilot manager
     print("Initializing qcgpilot...")
-    manager = LocalManager()
+    parameters.manager = LocalManager()
     print("done")
     
     # First optimization
     # define and create, if needed, directory containing csvfiles
-    if general['csvfiledir'] is not None:
-        csvfiledir = general['csvfiledir']
-        csvfiledir = optdir + csvfiledir + "/" 
-        if not os.path.exists(csvfiledir):
-            os.mkdir(csvfiledir)
+    csvfiledir = define_dir_for_csvfiles(general, parameters.optdir)
 
-    optsteps = int(general['run']['type']['steps'])
-    algorithm = general['run']['type']['optimization']
-    print(algorithm)
+    parameters.optsteps = int(general['run']['type']['steps'])
+    parameters.algorithm = general['run']['type']['optimization']
+    print(parameters.algorithm)
 
-    optimization_workflow(sim_param, set_param, infoinput, manager, algorithm, optsteps, optdir, csvfiledir, projectdir)
+    parameters.csvfiledir = csvfiledir
+    
+    optimization_workflow(parameters)
     print("optimization workflow finished")
     
-
     # Second optimization
     print("\n\n---------------------------")
     print("---------------------------")
     print("Starting second optimization")
-    localoptdir = optdir + "/localoptimization/"
+    localoptdir = parameters.optdir + "/localoptimization/"
     isExist = os.path.exists(localoptdir)
     if not isExist:
         os.mkdir(localoptdir)
-    if general['csvfiledir'] is not None:
-        csvfiledir = general['csvfiledir']
-        csvfiledir = localoptdir + csvfiledir + "/" 
-        if not os.path.exists(csvfiledir):
-            os.mkdir(csvfiledir)
+    # define and create, if needed, directory containing csvfiles
+    csvfiledir = define_dir_for_csvfiles(general, localoptdir)
     localoptsteps = int(general['run']['type']['localopt']['steps'])
     algorithm = general['run']['type']['localopt']['algorithm']
-    restartcsv = optdir + "opt_step_" + str(optsteps - 1) + "/csv_output_" + str(optsteps - 1) + ".csv"
-    optimization_workflow(sim_param, set_param, infoinput, manager, algorithm, localoptsteps, localoptdir, 
-                         csvfiledir, projectdir, restartcsv=restartcsv,
-                         restart=True, flag="local")
+    restartcsv = parameters.optdir + "opt_step_" + str(parameters.optsteps - 1) \
+                                   + "/csv_output_" + str(parameters.optsteps - 1) + ".csv"
+
+    parameters.algorithm = algorithm
+    parameters.optsteps = localoptsteps
+    parameters.optdir = localoptdir
+    parameters.restartcsv = restartcsv
+    parameters.restart = True
+    parameters.flag = "local"
+
+    optimization_workflow(parameters)
     
-    manager.cleanup()
-    manager.finish()
+    parameters.manager.cleanup()
+    parameters.manager.finish()
 
 
 if __name__ == "__main__":
