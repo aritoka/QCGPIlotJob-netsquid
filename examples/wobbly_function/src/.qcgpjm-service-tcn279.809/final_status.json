@@ -1,0 +1,37 @@
+{
+  "System": {
+    "Started": "2021-11-16 15:31:01.685864",
+    "Generated": "2021-11-16 15:31:30.657230",
+    "Uptime": "0:00:28.971370",
+    "Zmqaddress": "tcp://172.18.57.33:5672",
+    "Ifaces": [
+      "ZMQ"
+    ],
+    "Host": "tcn279",
+    "Account": "arianat",
+    "Wd": "/gpfs/home3/arianat/test/smart-stopos/examples/qcgpilot/src",
+    "PythonVersion": "3.9.5 (default, Oct  8 2021, 23:16:54)  [GCC 10.3.0]",
+    "Python": "/sw/arch/Centos8/EB_production/2021/software/Python/3.9.5-GCCcore-10.3.0/bin/python3",
+    "Platform": "linux"
+  },
+  "Resources": {
+    "TotalNodes": 1,
+    "TotalCores": 128,
+    "UsedCores": 0,
+    "FreeCores": 128
+  },
+  "JobStats": {
+    "TotalJobs": 215,
+    "InScheduleJobs": 1,
+    "FailedJobs": 0,
+    "FinishedJobs": 164,
+    "ExecutingJobs": 50
+  },
+  "IterationStats": {
+    "TotalIterations": 215,
+    "InScheduleIterations": 1,
+    "FailedIterations": 0,
+    "FinishedIterations": 164,
+    "ExecutingIterations": 50
+  }
+}

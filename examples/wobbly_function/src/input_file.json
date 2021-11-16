@@ -1,0 +1,65 @@
+{
+    "system":{
+        "sstoposdir":"/home/arianat/test/smart-stopos/",
+        "ncores": 1
+    },
+    "general":{
+        "name_project":"WFunction",
+        "description": "A function of two coordinates, x and y, which is only dependent on the radius sqrt(x^2 + y^2)",
+        "program": "wobbly_function.py",
+        "analysis_program": "analyse_function_output.py",
+        "files_needed": ["*.py"],
+        "parametersarguments": "x y", 
+        "otherarguments": "filebasename test",
+        "fixvariables": "--test 1.0",
+        "commandline": true,
+        "configfile":"",
+        "parmafile":"",
+        "csvfileprefix": "csv_output",
+		"csvfiledir": "csvfiles",
+        "run":{
+            "number_parameters":"2",
+            "seed": "1111",
+            "distribution": "uniform",
+            "type":{
+                "optimization": "GA",
+                "maximum": "False",
+                "steps": "1", 
+                "algorithm":{
+                    "order":"cr",
+                    "number_best_candidates": "10",
+                    "global_scale_factor": "1.0",
+                    "population_size": "50",
+                    "probability_mutation": "0.5",
+                    "probability_crossover": "0.5"
+                },
+                "localopt":{
+                    "algorithm": "random",
+                    "steps": "4"
+                }
+            }
+        }
+    }
+    ,
+    "parameters":[
+    {
+        "Parameter": "1",
+        "name":"x",
+        "min":"-4",
+        "max":"4",
+        "number_points":"6",
+        "distribution":"uniform",
+        "scale_factor": "0.05",
+        "type":"continuous"
+    },
+    {
+        "Parameter": "2",
+        "name":"y",
+        "min":"-4",
+        "max":"4",
+        "number_points":"6",
+        "distribution":"uniform",
+        "scale_factor": "0.05",
+        "type":"continuous"
+    }]
+}
