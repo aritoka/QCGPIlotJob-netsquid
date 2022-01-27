@@ -20,6 +20,7 @@ if __name__ == "__main__":
     parser.add_argument('--filebasename', type=str, default="test", required=False)
     parser.add_argument('--x', type=float, default=1.0, required=False)
     parser.add_argument('--y', type=float,required=False, default=1.0)
+    parser.add_argument('--test', type=float,required=False, default=1.0)
     args = parser.parse_args()
     parameter_values = [args.x, args.y]
 
