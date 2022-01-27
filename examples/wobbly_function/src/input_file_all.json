@@ -1,6 +1,6 @@
 {
     "system":{
-        "qcgpilot_netsquid_dir":"/home/arianat/qcgpilot_netsquid/examples/wobbly_function/",
+        "qcgpilot_netsquid_dir":"/home/arianat/qcgpilot_netsquid/",
         "ncores": 1
     },
     "general":{
@@ -12,20 +12,27 @@
     	"programsweepargs": ["x", "y"], 
     	"programvariableargs": ["filebasename:test"],
     	"programfixargs": ["test:1.0"],
-		"runmode":"commandline",
+		"runmode":{
+			"name": "commandline"
+		}
+		"runmodes":{
+			"name":"files",
+			"configfile":"",
+			"paramfile":""
+		},
     	"csvfileprefix": "csv_output",
 		"csvfiledir": "csvfiles"
 	},
     "run":{
         "number_parameters":"2",
         "seed": "1111",
-        "distribution": "uniform",
+        "distribution_init_points": "uniform",
         "type":"optimization",
-        "maximum": "False",
         "algorithm":[
     		{
     			"name":"GA",
         		"steps": "3", 
+        		"maximum": "False",
 				"restart": "false",
            		"parameters":{
     				"order":"cr",
@@ -39,7 +46,8 @@
         	{
             	"name": "random",
             	"steps": "4",
-    			"restart": "true"
+    			"restart": "true",
+        		"maximum": "False"
         	}]
     },
     "parameters":[
@@ -49,9 +57,9 @@
         "min":"-4",
         "max":"4",
         "number_points":"2",
-        "distribution":"uniform",
-        "scale_factor": "0.05",
-        "type":"continuous"
+        "distribution_init_points":"uniform",
+        "type":"continuous",
+        "scale_factor": "0.05"
     },
     {
         "Parameter": "2",
@@ -59,8 +67,8 @@
         "min":"-1",
         "max":"1",
         "number_points":"2",
-        "distribution":"uniform",
-        "scale_factor": "0.5",
-        "type":"continuous"
+        "distribution_init_points":"uniform",
+        "type":"continuous",
+        "scale_factor": "0.5"
     }]
 }

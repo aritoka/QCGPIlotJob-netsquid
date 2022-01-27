@@ -2,270 +2,219 @@ import json
 import os
 import shutil
 from argparse import ArgumentParser
-from datetime import datetime
 from qcg.pilotjob.api.manager import LocalManager
 from qcg.pilotjob.api.job import Jobs
-from qcgpilotnetsquid.utils.readinput import read_input_json
 from qcgpilotnetsquid.utils.createpoints import create_datapoints
-from qcgpilotnetsquid.qcgpilot.utilsqcgpilot import copyfiles
-from qcgpilotnetsquid.qcgpilot.utilsqcgpilot import commandline
-
+from qcgpilotnetsquid.utils.dirstructureNLBlueprint import create_dir_structure
+from qcgpilotnetsquid.utils.parameters import dict_to_setparameters
 from qcgpilotnetsquid.utils.parameters import SetParameters
-from qcg.pilotjob.api.manager import LocalManager
+from qcgpilotnetsquid.utils.qcgpilot import copyfiles
+from qcgpilotnetsquid.utils.qcgpilot import commandline_qcgpilot
 
 
-class optParams:
-    sim_param = {}
-    set_param = SetParameters()
-    data = {}
-    manager = LocalManager()
-    algorithm = "GA"
-    optsteps = 0
-    optdir = ""
-    csvfiledir = ""
-    projectdir = os.getcwd()
-    restartcsv = None
-    restart = False
-    flag = ""
+class InputParams:
+    """ Default is a single run"""
+    def __init__(self, data, projectdir):
+        self.run = data['run']
+        self.system = data['system']
+        self.general = data['general']
+        self.param = SetParameters()
+        self.algorithm = "None"
+        self.optsteps = 0
+        self.rundir = ""
+        self.csvfiledir = ""
+        if "qcgpilot_netsquid_dir" in self.system.keys():
+            self.projectdir = self.system["qcgpilot_netsquid_dir"] + "src/"
+        else:
+            self.projectdir = projectdir
+        self.restartcsv = None
+        self.restart = False
+        self.flag = ""
+        self.check()
+        self.createSetParam(data)
+
+    def createSetParam(self, data):
+        self.param = dict_to_setparameters(data['parameters']) #IMPROVE
+ 
+    def check(self):
+        if self.run["type"] not in ("single", "optimization"):
+            ValueError("no run type defined")
+        if self.run["type"] == "optimization":
+            if self.run["maximum"] not in self.run.keys():
+                ValueError("no maximum defined")
+        if self.general["runmode"] not in ("commandline", "files"):
+            ValueError("no run mode defined")
+        if self.general["runmode"] == "files":
+            if "configfile" and "paramfile" not in simparameters.general.keys():
+                ValueError("Configfile or paramfile not defined")
+   
+    def define_dircsvfiles(self):
+        if self.general['csvfiledir'] is not None:
+            self.csvfiledir = self.rundir + self.general['csvfiledir'] + "/" 
+            if not os.path.exists(self.csvfiledir):
+                os.mkdir(self.csvfiledir)
+    
+    def print_info(self):
+        print("Project dir: {}".format(self.projectdir))
+        print("Run mode = {}".format(self.general["runmode"]))
+        print("Run type = {}".format(self.run["type"]))
+        print("Sweep parameters info:")
+        self.param.list_parameters()
+
+    def init_algorithm_param(self, opt=0):
+        algorithm = self.run["algorithm"][opt]
+        self.optsteps = int(algorithm['steps'])
+        self.algorithm = algorithm['name']
+        # call check of algorithm???
+        if algorithm["restart"] == "true":
+            self.restart = True
 
 
-def define_dir_for_csvfiles(general, optdir):
-    """
-    Define and create, if needed, directory containing csvfiles
-    Parameters
-    ----------
-    general: ???
-    optdir: string
-            oprimization directory /output/optimization/
-    Returns
-    -------
-        csvfiledir: str
-            Directory for the csv files
-    """
-    if general['csvfiledir'] is not None:
-        csvfiledir = general['csvfiledir']
-        csvfiledir = optdir + csvfiledir + "/" 
-        if not os.path.exists(csvfiledir):
-            os.mkdir(csvfiledir)
 
-    return csvfiledir
-
-
-def directorystructureNLBlueprint(projectdir, general):
-    """ Creates the directory structure agreed in the NLbluprint
-    Parameters
-    ----------
-        projectdir: str
-            Project directory
-        general: dict
-            General infromation read from input file 
-    Returns
-    -------
-        optdir: str
-            Main optimization dir /output/optimization
-    """
-    outputdir = projectdir.split("/src")[0] + "/output"
-    if not os.path.exists(outputdir):
-        os.mkdir(outputdir)
-    dateTimeObj = datetime.now()
-    timestampStr = dateTimeObj.strftime("%Y-%b-%d_%H:%M:%S")
-    # uncomment timestamp in actual production
-    nameprojectdir = outputdir + "/" + general['name_project'] #+ "_" + timestampStr + "/"
-    if not os.path.exists(nameprojectdir):
-        os.mkdir(nameprojectdir)
-    optdir = nameprojectdir + "/optimization/"
-    if not os.path.exists(optdir):
-        os.mkdir(optdir)
-    return optdir
-
-
-def optimization_workflow(parameters):
+def optimization_workflow(simparameters, manager, opt):
     """
     Define optimization workflow
 
     Parameters
     ----------
-        input_file: string
-            name of input file with simulation information
-        data: dict
-            Information about the simulation read from input file
-        manager: qcgpilot object
-            QCGPilot manager
-        algorithm: string
-            Optimization algorithm to use
-        optsteps: int
-            optimization steps to be performed
-        optdir: string
-            oprimization directory /output/optimization/
-        csvfiledir: string
-            Directory where csvfiles with results are place, if None, then they
-            are kept in the opt_step_i directory
-        projectdir: string 
-            directory project 
-        restartcsv: string
-            In case of a restart, csvfile from which to start
-        restart: bool
-            True if the optimization should restart from an existing csv file
-        flag: string
-            Flag needed for qcgpilot unique job naming convention
+        simparameters: class InputParam()
+            simulation parameters read from input file
+        manager: LocalManager 
+            object qcgpilot
+        opt: int
+            optimization number 
     """
-    #TODO: remove redundant things: eg sim_param is sort of contained in data
-    general = parameters.data['general']
-    system = parameters.data['system']
-    if general["csvfileprefix"]:
-        csvprefix = general['csvfileprefix'] + "_"
+    if simparameters.general["csvfileprefix"]:
+        csvprefix = simparameters.general['csvfileprefix'] + "_"
     else:
         csvprefix = "csv_output_"
     
-    print(parameters.algorithm) 
     # Optimization workflow
-    for step in range(0, parameters.optsteps):
+    for step in range(0, simparameters.optsteps):
         print("-----------------------------")
         print("step : {}".format(step))
         jobs = Jobs()
         names = []
-        workdir = parameters.optdir + "opt_step_" + str(step) +"/"
-        print(workdir)
+        workdir = simparameters.rundir + "opt_step_" + str(step) +"/"
         if not os.path.exists(workdir):
             os.mkdir(workdir)
-        # copy files needed from projectdir to workdir
-        copyfiles(workdir, parameters.projectdir, general["files_needed"])
 
+        # copy files needed from projectdir to workdir
+        copyfiles(workdir, simparameters.projectdir, simparameters.general["files_needed"])
         csvfile = csvprefix + str(step) + ".csv"
+
         print("Creating data points to run...")
-        datapoints = create_datapoints(parameters.sim_param, parameters.set_param, 
-                                       parameters.algorithm, parameters.csvfiledir, csvprefix, 
-                                       parameters.optdir, step, parameters.restartcsv, 
-                                       restart=parameters.restart)
+        datapoints = create_datapoints(simparameters, csvprefix, step, opt, restart=simparameters.restart)
         print("done")
 
         for j, point in enumerate(datapoints):
-            names.append(general['name_project'] + "_" + str(step) + "_" + str(j) + parameters.flag)
-            instruction = commandline(j, point, step, general)
+            names.append(simparameters.general['name_project'] + "_" + str(step) + "_" +
+str(j) + simparameters.flag)
+            instruction = commandline_qcgpilot(j, point, step, simparameters.general)
             
             if step == 0:
                 jobs.add(
-                        name = general['name_project']+"_"+ str(step)+ "_" + str(j) + parameters.flag,
+                        name = simparameters.general['name_project']+"_"+ str(step)+ "_" +
+        str(j) + simparameters.flag,
                         exec = 'python3',
                         args = instruction,
-                        numCores = system['ncores'],
+                        numCores = simparameters.system['ncores'],
                         wd = workdir
                 )
             
             else: 
                 jobs.add(
-                        name=general['name_project']+"_"+ str(step)+ "_" + str(j) + parameters.flag,
+                        name=simparameters.general['name_project']+"_"+
+                                str(step)+ "_" + str(j) + simparameters.flag,
                         exec='python3',
                         args=instruction,
-                        numCores=system['ncores'],
+                        numCores=simparameters.system['ncores'],
                         wd=workdir,
                         after=[analysis]
                 )
         jobs.add(
-            name=general['name_project']+'_analysis_'+str(step) + parameters.flag,
+            name=simparameters.general['name_project']+'_analysis_'+str(step) + simparameters.flag,
             exec='python3',
-            args=[general['analysis_program'],"--step", step],
-            numCores=system['ncores'],
+            args=[simparameters.general['analysis_program'],"--step", step],
+            numCores=simparameters.system['ncores'],
             after=names,
             wd=workdir
         )
         print("Submitting jobs...")
-        job_ids = parameters.manager.submit(jobs)
+        job_ids = manager.submit(jobs)
         #print('submited jobs: ', str(job_ids))
         #job_status = manager.status(job_ids)
         #print('job status: ', job_status)
-        parameters.manager.wait4(job_ids)
+        manager.wait4(job_ids)
         print("jobs finished")
-        job_status = parameters.manager.status(job_ids)
+        job_status = manager.status(job_ids)
         print('job status: ', job_status)
-        if parameters.csvfiledir is not None:
-            shutil.copyfile(workdir + csvfile, parameters.csvfiledir + csvfile)
+        if simparameters.csvfiledir is not None:
+            shutil.copyfile(workdir + csvfile, simparameters.csvfiledir + csvfile)
 
-        analysis = general['name_project'] + '_analysis_' + str(step) + parameters.flag
+        analysis = simparameters.general['name_project'] + '_analysis_' + str(step) + simparameters.flag
         del names
 
 
 def main(inputfile, projectdir):
-    """ Workflow for an optimization followed by a local optimization
+    """ Workflow for several optimizations
     Parameters
     ----------
         inputfile: str
-            Name input file with information about the simulation
+            Input file name
         projectdir: str
-            Directory where the inputfile and other needed files are
+            Path where to run simulations (/src). Defauls is current directory
     """
-    
-    parameters = optParams()
-    parameters.projectdir = projectdir
+    if os.path.isfile(projectdir + "/" + inputfile):
+        f = open(inputfile, 'r')
+        data = json.load(f)
+    else:
+        ValueError("No valid input file")
 
-    f = open(inputfile, 'r')
-    parameters.data = json.load(f)
-    # general['run'] is almost the same as sim_param.
-    # TODO: change all to work with general instead of sim_param?
-    # The weird set_param construction probably can be subsitute by something
-    # simple, just a directory infoinput['parameters']..lots of refactoring
-    # needed
-    parameters.sim_param, parameters.set_param = read_input_json(inputfile)
-    general = parameters.data['general']
+    simparameters = InputParams(data, projectdir)
+    simparameters.print_info()
 
+    print("\nInitializing qcgpilot...")
+    manager = LocalManager()
     
-    print("Creating directory structure...")
-    # TODO: add case of single parameter run? Basically the same as optsteps = 1
-    # singledir = projectdir/output/name-project/single/
+    # Loop over optimizations 
+    for i, item in enumerate(simparameters.run["algorithm"]):
+        simparameters.init_algorithm_param(opt=i)
+        print("\n---------------------------")
+        print("Starting optimization {}; algorithm {}, steps {}, restart {}".format(i,
+              item["name"], item["steps"], item["restart"]))
+        runname = "optimization" + str(i)
+        simparameters.rundir = create_dir_structure(simparameters, runname)
+        simparameters.define_dircsvfiles()
+        if simparameters.restart:
+            simparameters.restartcsv = previousrundir + "opt_step_" + str(simparameters.optsteps - 1) + "/"
+        
+        # Flag needed for qcgpilot naming issues
+        simparameters.flag = str(i)
 
-    # optdir = projectdir/output/name-project/optimization/
-    parameters.optdir = directorystructureNLBlueprint(projectdir, general)
-    print("done")
-    
-    # Initialize QCGpilot manager
-    print("Initializing qcgpilot...")
-    parameters.manager = LocalManager()
-    print("done")
-    
-    # First optimization
-    print("\n\n---------------------------")
-    print("---------------------------")
-    print("Starting first optimization")
-    # define and create, if needed, directory containing csvfiles
-    csvfiledir = define_dir_for_csvfiles(general, parameters.optdir)
-
-    parameters.optsteps = int(general['run']['type']['steps'])
-    parameters.algorithm = general['run']['type']['optimization']
-    print(parameters.algorithm)
-
-    parameters.csvfiledir = csvfiledir
-    
-    optimization_workflow(parameters)
-    print("optimization workflow finished")
-    
-    # Second optimization
-    print("\n\n---------------------------")
-    print("---------------------------")
-    print("Starting second optimization")
-    parameters.optdir = parameters.optdir + "/localoptimization/"
-    isExist = os.path.exists(parameters.optdir)
-    if not isExist:
-        os.mkdir(parameters.optdir)
-    # define and create, if needed, directory containing csvfiles
-    parameters.csvfiledir = define_dir_for_csvfiles(general, parameters.optdir)
-    parameters.optsteps = int(general['run']['type']['localopt']['steps'])
-    parameters.algorithm = general['run']['type']['localopt']['algorithm']
-    parameters.restartcsv = parameters.optdir + "opt_step_" + str(parameters.optsteps - 1) \
-                                   + "/csv_output_" + str(parameters.optsteps - 1) + ".csv"
-    parameters.restart = True
-    parameters.flag = "local"
-
-    optimization_workflow(parameters)
-    
-    parameters.manager.cleanup()
-    parameters.manager.finish()
+        optimization_workflow(simparameters, manager, i)
+       
+        print("optimization workflow {} finished".format(i))
+        print("results in {}".format(simparameters.rundir))
+        previousrundir = simparameters.rundir
+    print("\nSimulation finished")
+    manager.cleanup()
+    manager.finish()
 
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument('--inputfile', required=False, default="input_file.json", type=str,
+    parser.add_argument('--inputfile', required=True, default="input_file.json", type=str,
                         help='File with the input information about the simulation and parameters')
     parser.add_argument('--projectdir', required=False, default=os.getcwd(), type=str,
-                        help='Main directory where simualtiosn are launched from')
+                        help='Main directory where simualtions are launched from')
     args = parser.parse_args()
-    main(args.inputfile, args.projectdir)
+
+    # default project dir is current directory, this is overwritten by
+    # arg.projectdir and further by the inputfile
+    projectdir = os.getcwd()
+    
+    if args.projectdir:
+        projectdir = args.projectdir 
+    
+    main(args.inputfile, projectdir)
