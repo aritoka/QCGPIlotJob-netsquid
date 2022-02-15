@@ -15,7 +15,7 @@
 		"runmode":{
 			"name": "commandline"
 		}
-		"runmodes":{
+		"runmode":{
 			"name":"files",
 			"configfile":"",
 			"paramfile":""

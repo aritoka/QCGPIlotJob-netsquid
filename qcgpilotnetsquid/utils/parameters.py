@@ -51,15 +51,12 @@ class SetParameters:
     def list_parameters(self):
         """Prints list of parameters"""
         for name, parameter in self.parameters.items():
-            print("name: {} --> range: {}, number_points: {}, distribution: {}, data_type: {}, scale_factor: {};"
-                  "width_distribution: {}; weight: {}".format(name,
+            print("name: {} --> range: {}, number_points: {}, distribution: {}, data_type: {}, scale_factor: {};".format(name,
                                                               parameter.range,
                                                               parameter.number_points,
                                                               parameter.distribution,
                                                               parameter.data_type,
-                                                              parameter.scale_factor,
-                                                              parameter.width_distribution,
-                                                              parameter.weight))
+                                                              parameter.scale_factor))
 
 
 class Parameter:
@@ -80,12 +77,6 @@ class Parameter:
         Type of distribution of the points.
     scale_factor: float
         Scaling factor for algorithms
-    width_distribution: float
-        Width gaussian for algorithms
-    weight : float, optional
-        Weight of the parameter (0,1). Default is 1.0 for all parameters
-    active: bool
-        Whether this is a parameter currently being explored or fixed.
     constraints: list
         List of constraints
 
@@ -97,8 +88,7 @@ class Parameter:
 
     """
     def __init__(self, name, parameter_range, number_points, data_type,
-                 distribution, scale_factor, width_distribution, variance,
-                 weight=1.0, active=True):
+                 distribution, scale_factor):
         self.name = name
         self.range = parameter_range
         self.range[0] = float(self.range[0])
@@ -106,9 +96,65 @@ class Parameter:
         self.number_points = number_points
         self.data_points = []
         self.data_type = data_type
-        self.distribution = distribution
-        self.active = active
-        self.weight = weight
         self.scale_factor = scale_factor
-        self.width_distribution = width_distribution
-        self.variance = variance
+        self.distribution = distribution
+
+def dict_to_setparameters(set_param_dict):
+    """
+    set_param_dict: dict
+        A dictionary with the parameters needed for the simulations as read from
+        input file.
+
+    Returns
+    -------
+    set_parameters : smartstopos.utils.parameter.SetParameters
+        Set of parameters and their properties as read from the input file.
+    """
+    parameters = False
+    set_parameters = SetParameters()
+    minimal_requirements = {'min': False,
+                            'max': False,
+                            'num_points': False,
+                            'distribution': False,
+                            'type': False
+                                    }
+    for item in set_param_dict:
+        name = item["name"]
+        if item["max"]:
+            minimal_requirements["max"] = True
+            maxr = float(item["max"])
+        if item["min"]:
+            minimal_requirements["min"] = True
+            minr = float(item["min"])
+        if minr > maxr:
+            raise ValueError("The minimum value is larger than the maximum for parameter '{}'".format(name))
+        
+        if item["number_points"]:
+            minimal_requirements['num_points'] = True
+            num_points = int(item["number_points"])
+        if item["distribution"]:
+            minimal_requirements['distribution'] = True
+            valid_distributions = ["uniform", "log", "random", "normal"]
+            dist = item["distribution"]
+            if dist not in valid_distributions:
+                raise ValueError("Distribution not define. "
+                                 "Please chose an existing one or define your own in makedatapoints.py")
+        if item["type"]:
+            typep = str(item["type"])
+            if typep not in ["discrete", "continuous"]:
+                raise ValueError("Data type of parameter {} is not valid. "
+                                 "Please chose between discrete and continuous".format(name))
+            minimal_requirements['type'] = True
+        if item['scale_factor']:
+            scale_factor = float(item["scale_factor"])
+        else:
+            scale_factor = 1.0
+
+        if all(minimal_requirements):
+            set_parameters.add_parameter(Parameter(name, [minr, maxr],
+                                         num_points, typep, dist, scale_factor))
+        else:
+            raise ValueError("One or more of the minimal requirements (min, max, number_points, type, distribution) for parameter {} is not defined".format(name))
+    return set_parameters
+
+
