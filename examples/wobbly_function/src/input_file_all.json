@@ -1,6 +1,6 @@
 {
     "system":{
-        "qcgpilot_netsquid_workdir":"/home/arianat/qcgpilot_netsquid/examples/wobbly_function/",
+        "qcgpilot_netsquid_dir":"/home/arianat/qcgpilot_netsquid/",
         "ncores": 1
     },
     "general":{
@@ -12,37 +12,43 @@
     	"programsweepargs": ["x", "y"], 
     	"programvariableargs": ["filebasename:test"],
     	"programfixargs": ["test:1.0"],
-		"runmode":"commandline",
+		"runmode":{
+			"name": "commandline"
+		}
+		"runmode":{
+			"name":"files",
+			"configfile":"",
+			"paramfile":""
+		},
     	"csvfileprefix": "csv_output",
 		"csvfiledir": "csvfiles"
 	},
     "run":{
         "number_parameters":"2",
         "seed": "1111",
-        "distribution": "uniform",
+        "distribution_init_points": "uniform",
         "type":"optimization",
-        "maximum": "True",
-		"constraints":"x+y<8",
         "algorithm":[
     		{
     			"name":"GA",
-        		"steps": "2", 
+        		"steps": "3", 
+        		"maximum": "False",
 				"restart": "false",
            		"parameters":{
     				"order":"cr",
             		"number_best_candidates": "10",
             		"global_scale_factor": "1.0",
-            		"population_size": "20",
+            		"population_size": "50",
             		"probability_mutation": "0.5",
             		"probability_crossover": "0.5"
         		}
     		},
-            {
-                "name": "random",
-                "steps": "4",
-                "restart": "true",                                                                                                  
-                "maximum": "False"
-            }]
+        	{
+            	"name": "random",
+            	"steps": "4",
+    			"restart": "true",
+        		"maximum": "False"
+        	}]
     },
     "parameters":[
     {
@@ -51,18 +57,18 @@
         "min":"-4",
         "max":"4",
         "number_points":"2",
-        "distribution":"uniform",
-        "scale_factor": "0.05",
-        "type":"continuous"
+        "distribution_init_points":"uniform",
+        "type":"continuous",
+        "scale_factor": "0.05"
     },
     {
-        "Parameter": "10",
+        "Parameter": "2",
         "name":"y",
-        "min":"-3",
-        "max":"3",
-        "number_points":"10",
-        "distribution":"uniform",
-        "scale_factor": "0.5",
-        "type":"continuous"
+        "min":"-1",
+        "max":"1",
+        "number_points":"2",
+        "distribution_init_points":"uniform",
+        "type":"continuous",
+        "scale_factor": "0.5"
     }]
 }

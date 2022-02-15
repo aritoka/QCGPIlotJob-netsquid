@@ -49,25 +49,18 @@ def get_subsample_csvfile(data, sim_params, samplesize=10):
     return subsample, fitness, sorted_population
 
 
-def readcsvfiles(csvfiledir, optdir, csvprefix, step, backsteps=1,
-                 restartcsv=None, subsample=None):
+def readcsvfiles(simparameters, step, backsteps=1,subsample=None):
     """Reads the results obtained in previous steps.
     Parameters
     ----------
-    csvfiledir: string
-        Place with csv files, default is previous opt step dir
-    optdir: string
-        Main optimization directory /optimization
-    csvprefix: string
-        Name of the csv file with results from last optimization step
+    simparameters: class InputParam
+        info read from input
     step: int
         Last optimization step
     backsteps: int
         Defines how many previous steps does the optimization algorithms needs
-    restartcsv: string
-        In case of a restart, csvfile from whcih to start
     subsample: bool
-        Defines whether we are using only a subsample (eg. best cndidates) of
+        Defines whether we are using only a subsample (eg. best candidates) of
         the data
 
     Returns
@@ -75,26 +68,29 @@ def readcsvfiles(csvfiledir, optdir, csvprefix, step, backsteps=1,
     csvdata: list of arrays
         Data from previous optimization steps read from csvfiles
     """
+    csvfiledir = simparameters.csvfiledir
+    csvprefix = simparameters.csvprefix
+    rundir = simparameters.rundir
+    restartcsv = simparameters.restartcsvfile
 
     csvdata = []
     csvfiles =[]
     
-    
     if restartcsv is not None and step == 0:
-        csvfiles += [restartcsv]
-    
-    # create a list of csvfiles to check
+        csvfiles += [restartcsv] 
+
     else:
         if csvfiledir == None:
             for i in range(0, backsteps):
-                temp= optdir + "opt_step_" + str(step - i - 1 ) + "/" + csvprefix + str(step - i - 1) + ".csv"
+                temp= rundir + "opt_step_" + str(step - i - 1) + "/" + csvprefix + str(step - i - 1) + ".csv"
                 csvfiles += [temp]
         else:
             for i in range(0, backsteps):
-                temp = csvfiledir + "/" + csvprefix + str(step - i - 1 ) + ".csv"
+                temp = csvfiledir + "/" + csvprefix + str(step - i - 1) + ".csv"
                 csvfiles += [temp]
-
+    
     totaldata = [] 
+
     for f in csvfiles:
         csvdata = list(pd.read_csv(f, engine='python', dtype=float).values)
         if subsample:

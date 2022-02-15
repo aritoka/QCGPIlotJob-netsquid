@@ -8,7 +8,6 @@ from qcgpilotnetsquid.utils.parameters import Parameter, SetParameters
 def str2bool(v):
     return v.lower() in ("True", "yes", "true", "t", "1")
 
-
 def read_input_json(filename):
     """Read input file in json format. 
     
@@ -159,5 +158,3 @@ if __name__ == "__main__":
     sim_params, set_params = read_input_json(args.input_file)
     print(sim_params)
     print(set_params)
-
- 
