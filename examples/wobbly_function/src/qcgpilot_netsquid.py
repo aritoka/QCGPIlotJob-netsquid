@@ -41,15 +41,13 @@ def optimization_workflow(simparameters, manager, opt):
         print("Adding jobs to submit...")
         # Add one job per datapoint in optimization step
         for j, point in enumerate(datapoints):
-            names.append(simparameters.general['name_project'] + "_" + str(step) + "_" +
-                        str(j) + simparameters.flag)
+            names.append(simparameters.general['name_project'] + "_" + str(step) + "_" + str(j) + simparameters.flag)
 
             instruction = commandline_qcgpilot(j, point, step, simparameters.general)
             #print("run arguments qcgpilot: {}".format(instruction))
             if step == 0:
                 jobs.add(
-                        name = simparameters.general['name_project']+ "_" + str(step)+ "_" +
-                               str(j) + simparameters.flag,
+                        name = simparameters.general['name_project']+ "_" + str(step) + "_" + str(j) + simparameters.flag,
                         exec = 'python3',
                         args = instruction,
                         numCores = simparameters.system['ncores'],
@@ -58,8 +56,7 @@ def optimization_workflow(simparameters, manager, opt):
 
             else:
                 jobs.add(
-                        name = simparameters.general['name_project']+ "_" +
-                               str(step)+ "_" + str(j) + simparameters.flag,
+                        name = simparameters.general['name_project']+ "_" + str(step)+ "_" + str(j) + simparameters.flag,
                         exec = 'python3',
                         args = instruction,
                         numCores = simparameters.system['ncores'],
@@ -69,8 +66,7 @@ def optimization_workflow(simparameters, manager, opt):
 
         # Add analysis job
         jobs.add(
-            name = simparameters.general['name_project'] + '_analysis_' +
-                   str(step) + simparameters.flag,
+            name = simparameters.general['name_project'] + '_analysis_' + str(step) + simparameters.flag,
             exec = 'python3',
             args = [simparameters.general['analysis_program'],"--step", step],
             numCores = simparameters.system['ncores'],
@@ -107,6 +103,7 @@ def main(inputfile, projectdir):
         data = json.load(f)
     else:
         ValueError("No valid input file")
+    print("projectdir1:{}".format(projectdir))
 
     simparameters = InputParamsOpt(data, projectdir)
     simparameters.print_info()
@@ -120,15 +117,15 @@ def main(inputfile, projectdir):
         simparameters.print_info_algorithm()
         runname = "optimization" + str(i)
         rundir = create_dir_structure(simparameters, runname)
-        simparameters.setRunDir(rundir) 
+        simparameters.set_rundir(rundir) 
         print("rundir: {}".format(simparameters.rundir))
-        simparameters.setCsvFileDir()
+        simparameters.set_dirCsvFile()
         print("csvfiledir: {}".format(simparameters.csvfiledir))
         print("optsteps: {}".format(simparameters.optsteps))
             
         if simparameters.restart:
             restartfile = previousrundir + "opt_step_" + str(previousrunsteps - 1) + "/" + simparameters.general["csvfileprefix"] + "_" + str(previousrunsteps - 1 ) + ".csv"
-            simparameters.setRestartCsvFile(restartfile)
+            simparameters.set_restartCsvFile(restartfile)
             print("restartcsvfile: {}".format(simparameters.restartcsvfile))
 
         # Flag needed for qcgpilot naming issues

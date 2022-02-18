@@ -26,17 +26,19 @@ job"""
             return files
         
         def set_project_dir(self, projectdir=None):
+            print("projectdir:{}".format(projectdir)) 
             if "qcgpilot_netsquid_workdir" in self.system.keys():
-                pdir = self.system["qcgpilot_netsquid_workdir"] + "src/"
-            if projectdir:
-                pdir = projectdir
+                pdir = self.system["qcgpilot_netsquid_workdir"]
+            else:
+                pdir = projectdir 
+            print("projectdir:{}".format(pdir)) 
             return pdir
 
         self.run = data['run']
         self.system = data['system']
         self.general = data['general']
         self.param = create_set_parameters(self, data["parameters"])
-        self.projectdir = set_project_dir(self)
+        self.projectdir = set_project_dir(self, projectdir=projectdir)
         self.csvprefix = set_csv_file_prefix(self)
         self.filesneeded = set_files_needed(self)
         self.flag = ""
@@ -47,7 +49,7 @@ job"""
         self.check()
         
         
-    def setCsvFileDir(self, csvfiledir=None):
+    def set_dirCsvFile(self, csvfiledir=None):
         if csvfiledir is None:
             if self.general['csvfiledir'] is not None:
                 csvfiledir = self.rundir + self.general['csvfiledir'] + "/" 
@@ -58,10 +60,10 @@ job"""
                 os.mkdir(csvfiledir)
         self.csvfiledir = csvfiledir
     
-    def setRestartCsvFile(self, restartfile):
+    def set_restartCsvFile(self, restartfile):
         self.restartcsvfile = restartfile
     
-    def setRunDir(self, rundir):
+    def set_rundir(self, rundir):
         self.rundir = rundir
 
     def check(self):
