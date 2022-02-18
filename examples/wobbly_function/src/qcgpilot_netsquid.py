@@ -5,7 +5,6 @@ from argparse import ArgumentParser
 from qcg.pilotjob.api.manager import LocalManager
 from qcg.pilotjob.api.job import Jobs
 from qcgpilotnetsquid.utils.createpoints import create_datapoints
-from qcgpilotnetsquid.utils.copyfiles import copyfiles
 from qcgpilotnetsquid.utils.dirstructureNLBlueprint import create_dir_structure
 from qcgpilotnetsquid.utils.qcgpilot import copyfiles
 from qcgpilotnetsquid.utils.qcgpilot import commandline_qcgpilot
