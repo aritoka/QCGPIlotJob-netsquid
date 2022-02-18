@@ -19,7 +19,7 @@ def optimization_workflow(simparameters, manager, opt):
         simparameters: class InputParam()
             Simulation parameters read from input file
         manager: qcgpilot object LocalManager() 
-            Manger of the qcgpilto workflow
+            Manager of the qcgpilto workflow
         opt: int
             optimization number
     """
@@ -37,9 +37,9 @@ def optimization_workflow(simparameters, manager, opt):
         copyfiles(workdir, simparameters)
         print("Creating data points to run...")
         datapoints = create_datapoints(simparameters, step, opt)
-        
+
         print("Adding jobs to submit...")
-        # Add one job per datapoint in optimization
+        # Add one job per datapoint in optimization step
         for j, point in enumerate(datapoints):
             names.append(simparameters.general['name_project'] + "_" + str(step) + "_" +
                         str(j) + simparameters.flag)
@@ -48,7 +48,7 @@ def optimization_workflow(simparameters, manager, opt):
             #print("run arguments qcgpilot: {}".format(instruction))
             if step == 0:
                 jobs.add(
-                        name = simparameters.general['name_project']+"_"+ str(step)+ "_" +
+                        name = simparameters.general['name_project']+ "_" + str(step)+ "_" +
                                str(j) + simparameters.flag,
                         exec = 'python3',
                         args = instruction,
@@ -58,7 +58,7 @@ def optimization_workflow(simparameters, manager, opt):
 
             else:
                 jobs.add(
-                        name = simparameters.general['name_project']+"_"+
+                        name = simparameters.general['name_project']+ "_" +
                                str(step)+ "_" + str(j) + simparameters.flag,
                         exec = 'python3',
                         args = instruction,
@@ -135,7 +135,7 @@ def main(inputfile, projectdir):
         simparameters.flag = str(i)
 
         optimization_workflow(simparameters, manager, i)
-    
+
         print("optimization workflow {} finished".format(i))
         print("results in {}".format(simparameters.rundir))
         previousrundir = simparameters.rundir
@@ -153,9 +153,9 @@ if __name__ == "__main__":
                         help='Main directory where simualtions are launch from (path/src/')
     args = parser.parse_args()
 
-    # default projectdir is current directory, this is overwritten by
-    # arg.projectdir and further by inputfile 
+    # default projectdir is current os.getcwd(), this is overwritten by
+    # arg.projectdir and further if there is something specified in the inputfile 
     if args.projectdir:
         projectdir = args.projectdir 
-    
+
     main(args.inputfile, projectdir)
