@@ -1,0 +1,39 @@
+Input file description:
+-----------------------
+
+section 1: system: optional
+	workdir: optional
+	ncores: optional
+section 2: general
+    name_project: optional
+    description: optional
+    program: necesary
+    analysis_program: optional
+    files_needed: optional
+    programsweepargs: optional, needed, array of strings with arguments eg. ["x", "y"] 
+    programvariableargs: optional, other variables needed by the program with varying value ["filebasename:test"]
+    programfixargs: optional, other fixed variables needed by the program ["test:1.0"],
+	runmode: necesary, commandline or files
+    csvfileprefix: optional, default  "csv_output",
+	csvfiledir: optional, default csvfiles are store in each opt_step
+    run:
+        type: neccesary, single or optimization
+        number_parameters: neccesary, int
+        seed: optional,
+        distribution: optional, default  "uniform"
+		constraints: optional string wiht constraints eg "x+y<8, x+5>10",
+        maximum: neccesary if type is optimization 
+        algorithm:neccesary if type is optimization, array of optimization methods with parameters
+    			name: neccesary
+        		steps: neccesary, 
+				restart: optional, default false,
+           		parameters: see algorithm 
+section 3: parameters, array of parameters 
+    parameter:
+        Parameter: optional, name
+        name: neccesary,
+        min: neccesary
+        max: neccesary
+        number_points: neccesary,
+        distribution: optional defualt uniform
+        type: neccesary
