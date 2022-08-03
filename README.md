@@ -4,10 +4,13 @@ QCGPilotJob implementation for NLBlueprint
 Description
 -----------
 
-Set of tools to run parameters explorations and perform parameters optimization locally and in HPC centers using QCGPilotJob and the specific requirements of the NLBlueprint
+Set of tools to run parameters explorations and perform parameters optimization locally and in HPC centers using QCGPilotJob wiht the specific requirements of the QIA-NLBlueprint team
+
 QCGPilotJOb repo: https://github.com/vecma-project/QCG-PilotJob
+
 QCGPilotJOb documentation: https://qcg-pilotjob.readthedocs.io/en/develop/
 
+QIA project: https://quantum-internet.team/
 
 Installation
 ------------
@@ -22,7 +25,7 @@ Structure
 - qcgpilotnetsquid: 
 	- algorithms:
 		- ga.py: genetic algorithm
-		- random_displacement
+		- random_displacement: random sidplacments
 
 	- utils:
 	- examples:
@@ -61,9 +64,6 @@ To run the simulations:
 Running the script will create a directory MyTest/output where the results will be dumped. For the HPC simualtions be aware that the results are initially stored in the scratch memory. You can see the path to this in the file MyTest/output/running_directory_MyTestName.
 You can follow the progress of your simulations there while they are taking place. The whole directory will be copied to your working directory (MyTest/output/) as soon as the simulations are finished.
 
-You can check whether your simulations are running by using:
-squeue -u username
-
 
 You can cancel all the jobs related with a run by using:
 cat MyTest/ouput/jobs_id_MyTestName | xargs scancel 
@@ -90,6 +90,5 @@ Contributors
 ------------
 
 Ariana Torres Knoop (ariana.torres@surf.nl)
-Franciso Silva (F.HortaFerreiradaSilva@tudelft.nl)
-David Maier (d.maier@tudelft.nl
+
 
